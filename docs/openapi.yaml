@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: NKVPN BFF API Showcase
+  version: 1.0.0
+  description: Public-safe frontend-facing API contract.
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /v1/me/subscription:
+    get:
+      summary: Get current user subscription view
+      security:
+        - ApiKeyAuth: []
+      responses:
+        "200":
+          description: Frontend-ready subscription view
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionView"
+        "502":
+          $ref: "#/components/responses/DownstreamUnavailable"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+  schemas:
+    SubscriptionView:
+      type: object
+      required: [active, activeUntil, trafficUsedGb, trafficLimitGb, devices]
+      properties:
+        active:
+          type: boolean
+        activeUntil:
+          type: string
+          format: date-time
+        trafficUsedGb:
+          type: number
+        trafficLimitGb:
+          type: number
+        devices:
+          type: integer
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+  responses:
+    DownstreamUnavailable:
+      description: Downstream dependency failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
